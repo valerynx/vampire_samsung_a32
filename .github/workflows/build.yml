@@ -54,7 +54,7 @@ jobs:
         run: |
           mkdir -p toolchain
           # Download and extract the toolchain
-          wget -qO- ${{ github.event.inputs.TOOLCHAIN_URL }} | tar -xf - -C toolchain --strip-components=1
+          wget -qO- ${{ github.event.inputs.TOOLCHAIN_URL }} | tar -xzf - -C toolchain --strip-components=1
           
           # Export necessary toolchain path variables (ADJUST PREFIX HERE)
           echo "PATH=$GITHUB_WORKSPACE/toolchain/bin:$PATH" >> $GITHUB_ENV
