@@ -1,0 +1,122 @@
+# .github/workflows/build_kernel.yml
+
+name: Moonlight
+
+on:
+  # Trigger the workflow manually from the GitHub UI
+  workflow_dispatch:
+    inputs:
+      KERNEL_REPO:
+        description: 'URL to your kernel source repository (e.g., https://github.com/YourOrg/YourKernelRepo)'
+        required: true
+        default: 'https://github.com/nguyencaoantuong/Moonlight-kernel'
+      KERNEL_BRANCH:
+        description: 'Target branch/tag of your kernel source'
+        required: true
+        default: 'main'
+      TOOLCHAIN_URL:
+        description: 'URL to the Clang/GCC Toolchain archive'
+        required: true
+        default: 'https://gitlab.com/clangsantoni/zyc_clang'
+      DEFCONFIG:
+        description: 'The defconfig name (e.g., arch/arm64/configs/vendor_defconfig)'
+        required: true
+        default: 'ksu_defconfig'
+      
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    # Set environment variables for the entire job
+    env:
+      ARCH: arm64
+      SUBARCH: arm64
+      JOBS: 16
+      KERNEL_DIR: kernel_source
+      
+    steps:
+      - name: ⬇️ Checkout Workflow Repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: 📂 Clone Kernel Source
+        run: |
+          git clone --depth=1 ${{ github.event.inputs.KERNEL_REPO }} -b ${{ github.event.inputs.KERNEL_BRANCH }} $KERNEL_DIR
+
+      - name: 🔧 Set Up Build Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libncurses-dev flex bison bc git cpio unzip python3 python3-pip xz-utils
+          pip install pyyaml
+
+      - name: ⚙️ Download and Setup Toolchain
+        run: |
+          mkdir -p toolchain
+          # Download and extract the toolchain
+          wget -qO- ${{ github.event.inputs.TOOLCHAIN_URL }} | tar -xf - -C toolchain --strip-components=1
+          
+          # Export necessary toolchain path variables (ADJUST PREFIX HERE)
+          echo "PATH=$GITHUB_WORKSPACE/toolchain/bin:$PATH" >> $GITHUB_ENV
+          echo "CROSS_COMPILE=aarch64-linux-gnu-" >> $GITHUB_ENV
+
+      - name: ⬇️ Integrate KernelSU-Next (Manual Mode)
+        run: |
+          cd $KERNEL_DIR
+          # 1. Fetch the KernelSU-Next source files into the kernel tree.
+          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s next
+          
+          # 2. Modify defconfig to enable KSU and disable KPROBES (forcing manual hooks)
+          DEFCONFIG_PATH="$PWD/arch/$ARCH/configs/${{ github.event.inputs.DEFCONFIG }}"
+          
+          # Add/Ensure CONFIG_KSU=y
+          if ! grep -q "CONFIG_KSU=y" "$DEFCONFIG_PATH"; then
+            echo "# KernelSU" >> "$DEFCONFIG_PATH"
+            echo "CONFIG_KSU=y" >> "$DEFCONFIG_PATH"
+          fi
+          
+          # Force disable KPROBES hook to use manual hooks
+          sed -i '/CONFIG_KSU_KPROBES_HOOK/d' "$DEFCONFIG_PATH"
+          echo "CONFIG_KSU_KPROBES_HOOK=n" >> "$DEFCONFIG_PATH"
+
+      - name: 🩹 Apply Manual Hook Patches
+        # **CRITICAL:** PATCH URL MUST MATCH YOUR KERNEL VERSION (e.g., 5.10, 5.15)
+        run: |
+          KSU_PATCHES_URL="https://raw.githubusercontent.com/KernelSU-Next/kernel_patches/main/syscall_hook"
+          
+          cd $KERNEL_DIR
+          
+          # Example: Download and apply a minimal syscall hook patch
+          # NOTE: You MUST replace this patch file with the correct one for your kernel!
+          wget "$KSU_PATCHES_URL/min_scope_syscall_hooks_v1.4.patch"
+          patch -p1 < min_scope_syscall_hooks_v1.4.patch
+          
+          # Forcing patch application can sometimes fix fuzz errors, but use with caution
+          # patch -p1 -f < min_scope_syscall_hooks_v1.4.patch
+
+      - name: 🔨 Compile Kernel (Post-Patch)
+        run: |
+          cd $KERNEL_DIR
+          
+          # 1. Generate Configuration (from modified defconfig)
+          make O=out ${{ github.event.inputs.DEFCONFIG }}
+          
+          # 2. Compile the Kernel
+          make -j$JOBS O=out
+
+      - name: 📦 Package Output (AnyKernel3)
+        run: |
+          git clone --depth=1 https://github.com/nguyencaoantuong/AnyKernel3/ AnyKernel3
+          
+          # Copy the compiled kernel image (ADJUST PATH/NAME IF NEEDED)
+          cp $KERNEL_DIR/out/arch/$ARCH/boot/Image AnyKernel3/
+          
+          # Create the final flashable ZIP
+          cd AnyKernel3
+          zip -r9 Moonlight-$(date +%Y%m%d-%H%M).zip * -x .git README.md
+
+      - name: ⬆️ Upload Final Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Moonlight
+          path: AnyKernel3/*.zip
