@@ -82,17 +82,13 @@ jobs:
       - name: 🩹 Apply Manual Hook Patches
         # **CRITICAL:** PATCH URL MUST MATCH YOUR KERNEL VERSION (e.g., 5.10, 5.15)
         run: |
-          KSU_PATCHES_URL="https://raw.githubusercontent.com/KernelSU-Next/kernel_patches/main/syscall_hook"
           
           cd $KERNEL_DIR
           
-          # Example: Download and apply a minimal syscall hook patch
-          # NOTE: You MUST replace this patch file with the correct one for your kernel!
-          wget "$KSU_PATCHES_URL/min_scope_syscall_hooks_v1.4.patch"
-          patch -p1 < min_scope_syscall_hooks_v1.4.patch
-          
-          # Forcing patch application can sometimes fix fuzz errors, but use with caution
-          # patch -p1 -f < min_scope_syscall_hooks_v1.4.patch
+            wget https://github.com/HeliumKA/requiredthingsforscript/raw/refs/heads/main/sukisu.diff
+            patch -p1 < sukisu.diff
+            wget https://github.com/HeliumKA/requiredthingsforscript/raw/refs/heads/main/ms.diff
+            patch -p1 < ms.diff
 
       - name: 🔨 Compile Kernel (Post-Patch)
         run: |
