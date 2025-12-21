@@ -17,7 +17,7 @@
 ### Maintainer: me and you :>
 
 > Download: ...
-
+### Infomation:
 - **KernelSU variant:** 
 - **KernelSU Manager supported:**
 - **SELinux:** Enforcing 
