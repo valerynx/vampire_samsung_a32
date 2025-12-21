@@ -34,6 +34,9 @@ echo "Have a nice day, $USER!"
 echo "Infomation:"
 echo "kernel: vampire | version: 4.14.356 | config: $defconfig"
 
+echo "Cloning zyc clang version 14"
+git clone https://github.com/EmanuelCN/zyc_clang-14 clang
+
 echo "Building, please wait."
 
 make -C $(pwd) O=$(pwd)/out KCFLAGS=' -w -pipe -O3' CONFIG_SECTION_MISMATCH_WARN_ONLY=y clean -j$(nproc) && make -C $(pwd) O=$(pwd)/out KCFLAGS='-w -O3' CONFIG_SECTION_MISMATCH_WARN_ONLY=y mrproper -j$(nproc)
