@@ -80,6 +80,7 @@ add_ksu() {
     echo "1) kernelsu next (legacy)"
     echo "2) rsuntk kernelsu"
     echo "3) no kernelsu"
+    echo "4) [hook] rksu"
     read -p "Choice [1-3]: " ksu_choice
 
     case $ksu_choice in
@@ -91,6 +92,9 @@ add_ksu() {
             echo -e "${GREEN}[plus] adding rksu...${NC}"
             # Standard rsuntk setup (Adjust URL/command if repo changes)
             curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash
+            ;;
+        3)
+            patch_rksu
             ;;
         *)
             echo -e "${YELLOW}[!] skip setup kernelsu.${NC}"
