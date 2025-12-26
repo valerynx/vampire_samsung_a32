@@ -70,7 +70,7 @@ patch_rksu() {
         echo -e "${RED}[warn] failed, check logs please.${NC}"
         rm rksu.patch
         exit 1
-    f
+    fi
 
 # ==========================================================
 #  KernelSU Functions
