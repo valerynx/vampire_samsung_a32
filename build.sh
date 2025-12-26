@@ -16,7 +16,7 @@ NC='\033[0m' # No Color
 #  Configuration
 # ==========================================================
 export ARCH=arm64
-export defconfig="a32_kpluse_defconfig"
+export defconfig="a32_k+e_defconfig"
 export DEFCONFIG_PATH="arch/arm64/configs/$defconfig"
 export CLANG_PATH="$(pwd)/clang"
 export OUT_DIR="$(pwd)/out"
