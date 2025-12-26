@@ -16,7 +16,7 @@ NC='\033[0m' # No Color
 #  Configuration
 # ==========================================================
 export ARCH=arm64
-export defconfig="a32_k+e_defconfig"
+export defconfig="a32_kpluse_defconfig"
 export DEFCONFIG_PATH="arch/arm64/configs/$defconfig"
 export CLANG_PATH="$(pwd)/clang"
 export OUT_DIR="$(pwd)/out"
@@ -56,10 +56,27 @@ header() {
 }
 
 # ==========================================================
+#  Patching Functions
+# ==========================================================
+patch_rksu() {
+    echo -e "${BLUE}[plus] wget-ing patch(es)...${NC}"
+    local PATCH_URL="https://raw.githubusercontent.com/rksuorg/kernel_patches/master/manual_hook/kernel-4.14.patch"
+    curl -LSs "$PATCH_URL" > rksu.patch
+    
+    if patch -p1 < rksu.patch; then
+        echo -e "${GREEN}[tick] applied successfully.${NC}"
+        rm rksu.patch
+    else
+        echo -e "${RED}[warn] failed, check logs please.${NC}"
+        rm rksu.patch
+        exit 1
+    f
+
+# ==========================================================
 #  KernelSU Functions
 # ==========================================================
 add_ksu() {
-    echo -e "\n${PURPLE}[*] Select KernelSU Variant:${NC}"
+    echo -e "\n${PURPLE}[*] select kernelsu variant:${NC}"
     echo "1) kernelsu next (legacy)"
     echo "2) rsuntk kernelsu"
     echo "3) no kernelsu"
@@ -67,11 +84,11 @@ add_ksu() {
 
     case $ksu_choice in
         1)
-            echo -e "${GREEN}[+] adding ksunext...${NC}"
+            echo -e "${GREEN}[plus] adding ksunext...${NC}"
             curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/main/kernel/setup.sh" | bash -s legacy
             ;;
         2)
-            echo -e "${GREEN}[+] adding rksu...${NC}"
+            echo -e "${GREEN}[plus] adding rksu...${NC}"
             # Standard rsuntk setup (Adjust URL/command if repo changes)
             curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash
             ;;
@@ -86,15 +103,15 @@ add_ksu() {
 # ==========================================================
 clone_toolchain() {
     if [ ! -d "$CLANG_PATH" ]; then
-        echo -e "${BLUE}[+] cloning clang...${NC}"
+        echo -e "${BLUE}[plus] cloning clang...${NC}"
         git clone --depth=1 https://github.com/EmanuelCN/zyc_clang-14 clang
     else
-        echo -e "${GREEN}[✓] clang found.${NC}"
+        echo -e "${GREEN}[tick] clang found.${NC}"
     fi
 }
 
 run_build() {
-    echo -e "${BLUE}[+] starting build, please patient...${NC}"
+    echo -e "${BLUE}[plus] starting build, please patient...${NC}"
     setup_env
     
     # Cleaning
@@ -123,7 +140,7 @@ finalize() {
     mkdir -p "$FINAL_OUT"
     
     cp "$OUT_DIR/arch/arm64/boot/Image" "$FINAL_OUT/Image"
-    echo -e "${CYAN}[i] Kernel Image moved to: ${NC}$FINAL_OUT/Image"
+    echo -e "${CYAN}[info] kernel image output: ${NC}$FINAL_OUT/Image"
 }
 
 # ==========================================================
