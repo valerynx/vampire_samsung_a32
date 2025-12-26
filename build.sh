@@ -71,6 +71,7 @@ patch_rksu() {
         rm rksu.patch
         exit 1
     fi
+}
 
 # ==========================================================
 #  KernelSU Functions
