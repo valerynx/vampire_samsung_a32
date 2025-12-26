@@ -87,7 +87,7 @@ add_ksu() {
     case $ksu_choice in
         1)
             echo -e "${GREEN}[plus] adding ksunext...${NC}"
-            curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/main/kernel/setup.sh" | bash -s legacy
+            curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/main/kernel/setup.sh" | bash -s legacy
             ;;
         2)
             echo -e "${GREEN}[plus] adding rksu...${NC}"
