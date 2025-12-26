@@ -1,0 +1,1 @@
+cmd_drivers/kernelsu/built-in.o :=   rm -f drivers/kernelsu/built-in.o; /home/tuong/vampire_samsung_a32/clang/bin/aarch64-linux-gnu-ar rcSTPD drivers/kernelsu/built-in.o drivers/kernelsu/kernelsu.o ; scripts/mod/modpost drivers/kernelsu/built-in.o
