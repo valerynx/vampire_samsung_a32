@@ -107,9 +107,11 @@ add_ksu() {
 #  Build Logic
 # ==========================================================
 clone_toolchain() {
+    # Check if clang exists in the HOME directory
     if [ ! -d "$CLANG_PATH" ]; then
         echo -e "${BLUE}[plus] cloning clang...${NC}"
-        git clone --depth=1 https://github.com/EmanuelCN/zyc_clang-14 clang
+        # Use git clone to the specific path defined in $CLANG_PATH
+        git clone --depth=1 https://github.com/EmanuelCN/zyc_clang-14 "$CLANG_PATH"
     else
         echo -e "${GREEN}[tick] clang found.${NC}"
     fi
