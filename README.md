@@ -8,7 +8,7 @@
 <div align="center" markdown="1">
 
 <p align="center">
-  <img src="https://github.com/m0onl1ghtt/m0onl1ghtt/blob/main/vampire.png" alt="a"/>
+  vampire
 </p>
 
 <div align="left" markdown="1">
